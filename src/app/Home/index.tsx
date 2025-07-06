@@ -1,12 +1,13 @@
-import { View, Image, Text,TouchableOpacity, FlatList } from "react-native"
+import { FlatList, Image, Text, TouchableOpacity, View } from "react-native"
 
 import { Button } from "@/components/Button"
 
-import { styles } from "./styles"
-import { Input } from "@/components/Input"
 import { Filter } from "@/components/Filter/Index"
-import { FilterStatus } from "@/types/FilterStatus"
+import { Input } from "@/components/Input"
 import { Item } from "@/components/Item"
+import { FilterStatus } from "@/types/FilterStatus"
+import { useState } from "react"
+import { styles } from "./styles"
 
 const FILTER_STATUS: FilterStatus[] = [FilterStatus.DONE, FilterStatus.PENDING]
 const ITEMS = [
@@ -27,10 +28,12 @@ const ITEMS = [
   },
 ]
 
-export function Home(){
+export function Home() {
+  const [filter, setFilter] = useState(FilterStatus.PENDING)
+
   return (
-    <View style= {styles.container}>
-      <Image source={require("@/assets/logo.png")} style={styles.logo}/>
+    <View style={styles.container}>
+      <Image source={require("@/assets/logo.png")} style={styles.logo} />
 
 
       <View style={styles.form}>
@@ -41,7 +44,12 @@ export function Home(){
       <View style={styles.content}>
         <View style={styles.header}>
           {FILTER_STATUS.map((status) => (
-            <Filter key={status} status={status} isActive />
+            <Filter
+               key={status}
+               status={status} 
+               isActive={filter === status}
+               onPress={() => setFilter(status)} 
+            />
           ))}
 
           <TouchableOpacity style={styles.clearButton}>
@@ -49,11 +57,11 @@ export function Home(){
           </TouchableOpacity>
         </View>
 
-        <FlatList 
+        <FlatList
           data={ITEMS}
           keyExtractor={item => item.id}
-          renderItem={({item}) => (
-            <Item 
+          renderItem={({ item }) => (
+            <Item
               data={item}
               onStatus={() => console.log("Mudar status")}
               onRemove={() => console.log("remover")}
@@ -62,8 +70,8 @@ export function Home(){
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           contentContainerStyle={styles.listContent}
-          ListEmptyComponent={() => <Text style={styles.empty}>Nenhum item aqui.</Text>}          
-          
+          ListEmptyComponent={() => <Text style={styles.empty}>Nenhum item aqui.</Text>}
+
         />
       </View>
     </View>
