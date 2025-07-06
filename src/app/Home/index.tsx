@@ -1,35 +1,50 @@
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native"
+import { Alert, FlatList, Image, Text, TouchableOpacity, View } from "react-native"
 
 import { Button } from "@/components/Button"
 
 import { Filter } from "@/components/Filter/Index"
 import { Input } from "@/components/Input"
 import { Item } from "@/components/Item"
+import { itemsStorage, ItemsStorage } from "@/storage/itemsStorage"
 import { FilterStatus } from "@/types/FilterStatus"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { styles } from "./styles"
 
 const FILTER_STATUS: FilterStatus[] = [FilterStatus.DONE, FilterStatus.PENDING]
-const ITEMS = [
-  {
-    id: "1",
-    status: FilterStatus.DONE,
-    description: "1 pacote de café"
-  },
-  {
-    id: "2",
-    status: FilterStatus.PENDING,
-    description: "3 pacotes de macarrão"
-  },
-  {
-    id: "3",
-    status: FilterStatus.PENDING,
-    description: "3 cebolas"
-  },
-]
 
 export function Home() {
   const [filter, setFilter] = useState(FilterStatus.PENDING)
+  const [description, setDescription] = useState("")
+  const [items, setItems] = useState<ItemsStorage[]>([])
+
+  async function handleAdd() {
+    if (!description.trim()) {
+      return Alert.alert("Adicionar", "Informe a descrição para adicionar.")
+    }
+
+    const newItem = {
+      id: Math.random().toString().substring(2),
+      description,
+      status: FilterStatus.PENDING,
+    }
+
+    await itemsStorage.add(newItem)
+    await itemsByStatus()
+  }
+
+  async function itemsByStatus() {
+    try {
+      const response = await itemsStorage.getByStatus(filter)
+      setItems(response)
+    } catch (error) {
+      console.log(error)
+      Alert.alert("Erro", "Não foi possivel filtrar os itens.")
+    }
+  }
+
+  useEffect(() => { 
+   itemsByStatus()
+  }, [filter])
 
   return (
     <View style={styles.container}>
@@ -37,18 +52,18 @@ export function Home() {
 
 
       <View style={styles.form}>
-        <Input placeholder="O que você precisa comprar?" />
-        <Button title="Entrar" />
+        <Input placeholder="O que você precisa comprar?" onChangeText={setDescription} />
+        <Button title="Adicionar" onPress={handleAdd} />
       </View>
 
       <View style={styles.content}>
         <View style={styles.header}>
           {FILTER_STATUS.map((status) => (
             <Filter
-               key={status}
-               status={status} 
-               isActive={filter === status}
-               onPress={() => setFilter(status)} 
+              key={status}
+              status={status}
+              isActive={filter === status}
+              onPress={() => setFilter(status)}
             />
           ))}
 
@@ -58,7 +73,7 @@ export function Home() {
         </View>
 
         <FlatList
-          data={ITEMS}
+          data={items}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
             <Item
