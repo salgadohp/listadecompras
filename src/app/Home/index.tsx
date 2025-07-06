@@ -30,6 +30,19 @@ export function Home() {
 
     await itemsStorage.add(newItem)
     await itemsByStatus()
+
+    setFilter(FilterStatus.PENDING)
+    setDescription("")
+  }
+
+  async function handleRemove(id: string) {
+    try {
+      await itemsStorage.remove(id)
+      await itemsByStatus()
+    } catch (error) {
+      console.log(error)
+      Alert.alert("Remover", "Não foi possivel remover o item")
+    }
   }
 
   async function itemsByStatus() {
@@ -52,7 +65,11 @@ export function Home() {
 
 
       <View style={styles.form}>
-        <Input placeholder="O que você precisa comprar?" onChangeText={setDescription} />
+        <Input 
+          placeholder="O que você precisa comprar?" 
+          onChangeText={setDescription}
+          value={description}
+        />
         <Button title="Adicionar" onPress={handleAdd} />
       </View>
 
@@ -79,7 +96,7 @@ export function Home() {
             <Item
               data={item}
               onStatus={() => console.log("Mudar status")}
-              onRemove={() => console.log("remover")}
+              onRemove={() => handleRemove(item.id)}
             />
           )}
           showsVerticalScrollIndicator={false}
